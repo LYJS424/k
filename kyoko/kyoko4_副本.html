@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>雾切响子 - 印象サイト（スマホ対応・立絵拡大・和風フォント）</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Google FontsのSawarabi Minchoを読み込み -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Sawarabi+Mincho&display=swap" rel="stylesheet" />
+
+  <style>
+    /*========================================
+      リセット & ベース設定
+    ========================================*/
+    * {
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box;
+    }
+    body {
+      /* 和風フォント → Sawarabi Minchoを第一候補に */
+      font-family: "Sawarabi Mincho", "Yu Mincho", serif;
+      color: #fff;
+      background-color: #000;
+      overflow-x: hidden; /* 弾幕が流れても横スクロールしない */
+      /* 動きのある背景パターン */
+      background-image: radial-gradient(circle, rgba(127,63,191,0.3) 5%, transparent 10%),
+                        radial-gradient(circle, rgba(127,63,191,0.3) 5%, transparent 10%);
+      background-repeat: repeat;
+      background-size: 200px 200px;
+      animation: movePattern 20s linear infinite;
+    }
+    @keyframes movePattern {
+      0% {
+        background-position: 0 0, 100px 100px;
+      }
+      100% {
+        background-position: 100px 100px, 0 0;
+      }
+    }
+
+    h1, h2, h3 {
+      letter-spacing: 0.05em;
+      margin-bottom: 20px;
+    }
+    p {
+      line-height: 1.7;
+    }
+
+    /*========================================
+      ヘッダー & ナビゲーション
+    ========================================*/
+    header {
+      width: 100%;
+      background-color: rgba(127,63,191,0.2);
+      backdrop-filter: blur(5px);
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 999;
+      padding: 10px 0;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 30px;
+    }
+    nav li a {
+      color: #fff;
+      text-decoration: none;
+      font-weight: bold;
+      transition: text-shadow 0.3s;
+    }
+    nav li a:hover {
+      text-shadow: 0 0 5px rgba(127,63,191, 0.8);
+    }
+
+    /* スマホ向けにナビの項目をやや小さめに */
+    @media (max-width: 480px) {
+      nav ul {
+        gap: 15px;
+      }
+      nav li a {
+        font-size: 0.9rem;
+      }
+    }
+
+    /*========================================
+      各セクション共通
+    ========================================*/
+    section {
+      min-height: 100vh;
+      padding: 80px 20px 40px; /* ヘッダー分(固定) + 余白 */
+      scroll-margin-top: 80px; /* アンカークリック時の表示位置を調整 */
+    }
+
+    /*========================================
+      HOMEセクション
+    ========================================*/
+    #home {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      position: relative;
+    }
+    .kyoko-illust {
+      width: 300px;
+      max-width: 90%;
+      transition: transform 0.3s, filter 0.3s;
+    }
+    .kyoko-illust:hover {
+      transform: scale(1.05);
+      filter: drop-shadow(0 0 15px rgba(127,63,191,0.8));
+    }
+    .intro {
+      margin-top: 20px;
+    }
+
+    /* 弾幕用 */
+    .bullet {
+      position: absolute;
+      white-space: nowrap;
+      font-weight: bold;
+      font-size: 1rem;
+      color: #ffccff;
+      text-shadow: 0 0 5px rgba(255,255,255,0.8);
+      pointer-events: none; /* クリックを通さない */
+      animation: bulletMove 10s linear forwards;
+    }
+    @keyframes bulletMove {
+      0% {
+        transform: translateX(-100%);
+        opacity: 0;
+      }
+      5% {
+        opacity: 1;
+      }
+      95% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(120vw);
+        opacity: 0;
+      }
+    }
+
+    /*========================================
+      メッセージボード
+    ========================================*/
+    #message-board {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .post-it-container {
+      width: 80%;
+      max-width: 600px;
+      background-color: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 20px;
+      min-height: 300px;
+    }
+    .post-it-note {
+      background-color: #fffa8e;
+      color: #333;
+      padding: 10px;
+      margin: 10px auto;
+      border-radius: 5px;
+      width: 80%;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    .post-it-note:hover {
+      transform: scale(1.05);
+      z-index: 999;
+    }
+    .timestamp {
+      font-size: 0.8rem;
+      color: #666;
+      text-align: right;
+      margin-top: 5px;
+    }
+
+    .add-note-button {
+      margin: 20px 0;
+      background-color: rgba(127,63,191, 0.8);
+      border: none;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.3s, transform 0.2s;
+    }
+    .add-note-button:hover {
+      background-color: rgba(127,63,191,1);
+      transform: scale(1.05);
+    }
+
+    /* モーダル */
+    #modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+    #modal-content {
+      background-color: #fff;
+      color: #333;
+      padding: 20px;
+      border-radius: 10px;
+      width: 80%;
+      max-width: 400px;
+      position: relative;
+    }
+    #modal-content label {
+      display: block;
+      margin: 10px 0 5px;
+    }
+    #modal-content input[type="text"],
+    #modal-content textarea {
+      width: 100%;
+      padding: 8px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+    }
+    #modal-content button {
+      background-color: rgba(127,63,191, 0.8);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-weight: bold;
+      border-radius: 5px;
+      margin-right: 10px;
+    }
+    .close-button {
+      position: absolute;
+      top: 10px; right: 10px;
+      background: none;
+      color: #333;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    /*========================================
+      私について（ABOUT ME）
+    ========================================*/
+    #about-me {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .about-container {
+      width: 80%;
+      max-width: 800px;
+      background-color: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 20px;
+    }
+    .about-container p {
+      margin-bottom: 1em;
+    }
+
+    /*========================================
+      連絡先（CONTACT）
+    ========================================*/
+    #contact {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+    .contact-container {
+      width: 80%;
+      max-width: 600px;
+      background-color: rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 20px;
+      text-align: center;
+      position: relative;
+    }
+    .contact-item {
+      margin: 10px 0;
+    }
+    .quote-bubble {
+      display: none;
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: #fff;
+      color: #333;
+      padding: 10px;
+      border-radius: 10px;
+      width: 250px;
+      box-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+      font-size: 0.9rem;
+      line-height: 1.4;
+      z-index: 9999;
+    }
+    .quote-bubble::after {
+      content: "";
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 10px solid transparent;
+      border-top-color: #fff;
+    }
+
+    /*========================================
+      モバイル向け調整
+    ========================================*/
+    @media (max-width: 768px) {
+      section {
+        padding: 70px 10px 30px; /* 少し狭め */
+      }
+      .about-container,
+      .contact-container,
+      .post-it-container {
+        width: 90%;
+      }
+    }
+    /* 480px以下での立ち絵をさらに大きく */
+    @media (max-width: 480px) {
+      .kyoko-illust {
+        width: 350px; /* 通常の300pxより拡大 */
+      }
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- ========================
+      ヘッダー・ナビ
+  =========================-->
+  <header>
+    <nav>
+      <ul>
+        <li><a href="#home">HOME</a></li>
+        <li><a href="#message-board">メッセージボード</a></li>
+        <li><a href="#about-me">私について</a></li>
+        <li><a href="#contact">連絡先</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- ========================
+      HOMEセクション
+  =========================-->
+  <section id="home">
+    <img src="kyoko.png" alt="雾切响子の立ち絵" class="kyoko-illust">
+    <div class="intro">
+      <h1>雾切响子（Kyoko Kirigiri）</h1>
+      <p>
+        超高校級の探偵 / 冷静・理性的・神秘<br>
+        代表アイテム：紫色の手袋、鎖、ノート<br>
+        名言：「无论如何，我都会找到真相。」<br>
+        タグ：#冷静理智 #超高校级侦探 #神秘少女 #推理高手 #不轻易流露感情
+      </p>
+    </div>
+  </section>
+
+  <!-- ========================
+      メッセージボード
+  =========================-->
+  <section id="message-board">
+    <h2>メッセージボード</h2>
+    <div class="post-it-container" id="post-it-container"></div>
+    <button class="add-note-button" id="open-modal-button">＋ 新規メッセージ</button>
+
+    <!-- モーダル -->
+    <div id="modal">
+      <div id="modal-content">
+        <button class="close-button" id="close-modal-button">×</button>
+        <h3>メッセージを投稿</h3>
+        <label for="author">お名前：</label>
+        <input type="text" id="author" placeholder="例）探偵ファン">
+        <label for="message">内容：</label>
+        <textarea id="message" rows="4" placeholder="雾切响子への応援や推理の感想など"></textarea>
+        <button id="submit-message-button">投稿</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================
+      私について（ABOUT ME）
+  =========================-->
+  <section id="about-me">
+    <h2>私について</h2>
+    <div class="about-container">
+      <h3>背景ストーリー</h3>
+      <p>
+        雾切家は代々探偵を輩出してきた名家であり、雾切响子は幼い頃から探偵としての素質を養ってきました。
+        『ダンガンロンパ』シリーズでは、“超高校級の探偵”として学園に潜む難事件を次々と解決へ導きます。
+      </p>
+      <h3>能力と特徴</h3>
+      <p>
+        卓越した推理力と冷静沈着な性格が最大の武器。  
+        感情を大きく露わにせず、理性的なアプローチで真実に迫る姿がファンを魅了してやみません。
+      </p>
+      <h3>名場面回想</h3>
+      <p>
+        『ダンガンロンパ』の学級裁判や推理イベントでは数々の名言や推理シーンを披露。  
+        堂々とした立ち振る舞いと切れ味鋭い考察で事件を解決に導く姿は、多くのファンの心に強く刻まれています。
+      </p>
+    </div>
+  </section>
+
+  <!-- ========================
+      連絡先（CONTACT）
+  =========================-->
+  <section id="contact">
+    <h2>連絡先</h2>
+    <div class="contact-container" id="contact-container">
+      <div class="contact-item">
+        Twitter/X: <span>@KirigiriMystery</span>
+      </div>
+      <div class="contact-item">
+        Bilibili: <span>Kirigiri-Ch</span>
+      </div>
+      <div class="contact-item">
+        Discord: <span>Kirigiri#1110</span>
+      </div>
+      <div class="contact-item">
+        メール: <span>kirigiri-detective@example.com</span>
+      </div>
+      <div class="contact-item">
+        ファンサイト: <a href="https://example.com" target="_blank" style="color:#fff;">https://example.com</a>
+      </div>
+      <!-- 吹き出し -->
+      <div class="quote-bubble" id="quote-bubble"></div>
+    </div>
+  </section>
+
+  <script>
+    /*========================================
+      HOMEセクション：弾幕の実装
+    ========================================*/
+    const homeSection = document.getElementById("home");
+    const quotesForHome = [
+      "未知を恐れるより、足を止める方が怖いわ。",
+      "真実は消えない。あなたが向き合うかどうかに関わらずね。",
+      "私の目的はただ一つ。真相を解き明かすことよ。",
+      "どんなことがあっても、諦めない。それが探偵の流儀。",
+      "理性を失っては、道を見誤るだけ。",
+      "无论如何，我都会找到真相。"
+    ];
+
+    // 3秒ごとに弾幕を生成
+    setInterval(() => {
+      createBullet();
+    }, 3000);
+
+    function createBullet() {
+      const randomQuote = quotesForHome[Math.floor(Math.random() * quotesForHome.length)];
+      const bullet = document.createElement("div");
+      bullet.className = "bullet";
+      bullet.textContent = randomQuote;
+
+      // HOMEセクション内のランダム縦位置（ただし全体bodyに配置）
+      const homeHeight = homeSection.offsetHeight;
+      const randomTop = Math.random() * (homeHeight - 50) + 20; 
+      bullet.style.top = homeSection.offsetTop + randomTop + "px";
+
+      document.body.appendChild(bullet);
+
+      bullet.addEventListener("animationend", () => {
+        bullet.remove();
+      });
+    }
+
+    /*========================================
+      メッセージボード：モーダル制御
+    ========================================*/
+    const openModalButton = document.getElementById("open-modal-button");
+    const closeModalButton = document.getElementById("close-modal-button");
+    const modal = document.getElementById("modal");
+    const submitMessageButton = document.getElementById("submit-message-button");
+    const authorInput = document.getElementById("author");
+    const messageInput = document.getElementById("message");
+    const postItContainer = document.getElementById("post-it-container");
+
+    openModalButton.addEventListener("click", () => {
+      modal.style.display = "flex";
+      modal.style.alignItems = "center";
+    });
+    closeModalButton.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+
+    submitMessageButton.addEventListener("click", () => {
+      const author = authorInput.value.trim() || "匿名";
+      const message = messageInput.value.trim();
+      if (!message) {
+        alert("メッセージを入力してください。");
+        return;
+      }
+
+      const note = document.createElement("div");
+      note.className = "post-it-note";
+      note.innerHTML = `
+        <div>${message}</div>
+        <div class="timestamp">by ${author} / ${new Date().toLocaleString()}</div>
+      `;
+      postItContainer.appendChild(note);
+
+      authorInput.value = "";
+      messageInput.value = "";
+      modal.style.display = "none";
+    });
+
+    /*========================================
+      連絡先セクション：ホバー時のランダム名言
+    ========================================*/
+    const contactContainer = document.getElementById("contact-container");
+    const quoteBubble = document.getElementById("quote-bubble");
+    const quotesForContact = [
+      "未知を恐れるより、足を止める方が怖いわ。",
+      "真実は消えない。あなたが向き合うかどうかに関わらずね。",
+      "私の目的はただ一つ。真相を解き明かすことよ。",
+      "どんなことがあっても、諦めない。それが探偵の流儀。",
+      "理性を失っては、道を見誤るだけ。",
+      "无论如何，我都会找到真相。"
+    ];
+
+    contactContainer.addEventListener("mouseover", () => {
+      const randomQuote = quotesForContact[Math.floor(Math.random() * quotesForContact.length)];
+      quoteBubble.textContent = randomQuote;
+      quoteBubble.style.display = "block";
+    });
+    contactContainer.addEventListener("mouseout", () => {
+      quoteBubble.style.display = "none";
+    });
+  </script>
+</body>
+</html>
